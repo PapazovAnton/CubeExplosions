@@ -2,36 +2,38 @@ using UnityEngine;
 
 public class Cube : MonoBehaviour
 {
-    private LayerMask _layerCube;
     private string _layerCubeName = "Cube";
+    private string _layerWallsName = "Walls";
     private float _splitChance = 1.0f;
 
-    private void Awake()
+    private void OnMouseDown()
     {
-        _layerCube = LayerMask.GetMask(_layerCubeName);
-    }
+        int layerMask = ~LayerMask.GetMask(_layerWallsName);
 
-    private void Update()
-    {
-        if (Input.GetMouseButtonDown(0))
+        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        RaycastHit hit;
+
+        if (Physics.Raycast(ray, out hit, Mathf.Infinity, layerMask))
         {
-            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-
-            if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, _layerCube))
+            if (hit.collider.gameObject == gameObject)
             {
-                if (hit.collider.gameObject == gameObject)
-                {
-                    SplitCube();
-                }
+                SplitCube();
             }
         }
     }
 
     private void SplitCube()
     {
+        int minRandomCubes = 2;
+        int maxRandomCubes = 7;
+        int scaleReduce = 2;
+        int splitReduce = 2;
+        int explosionForce = 500;
+        int explosionRadius = 5;
+
         if (Random.value <= _splitChance)
         {
-            int newCubesCount = Random.Range(2, 7);
+            int newCubesCount = Random.Range(minRandomCubes, maxRandomCubes);
 
             for (int i = 0; i < newCubesCount; i++)
             {
@@ -39,15 +41,15 @@ public class Cube : MonoBehaviour
 
                 newCube.layer = LayerMask.NameToLayer(_layerCubeName);
                 newCube.transform.position = transform.position;
-                newCube.transform.localScale = transform.localScale / 2;
+                newCube.transform.localScale = transform.localScale / scaleReduce;
 
                 newCube.AddComponent<Rigidbody>();
-                newCube.AddComponent<Cube>()._splitChance = _splitChance / 2;
+                newCube.AddComponent<Cube>()._splitChance = _splitChance / splitReduce;
 
                 Color randomColor = new Color(Random.value, Random.value, Random.value);
                 newCube.GetComponent<Renderer>().material.color = randomColor;
 
-                newCube.GetComponent<Rigidbody>().AddExplosionForce(500, transform.position, 5);
+                newCube.GetComponent<Rigidbody>().AddExplosionForce(explosionForce, transform.position, explosionRadius);
             }
         }
 
