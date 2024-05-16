@@ -2,10 +2,12 @@ using UnityEngine;
 
 public class Cube : MonoBehaviour
 {
+    [SerializeField] private GameObject _cubePrefab;
+    [SerializeField] private float _splitChance;
+
     private string _layerCubeName = "Cube";
     private string _layerWallsName = "Walls";
-    private float _splitChance = 1.0f;
-
+    
     private void OnMouseDown()
     {
         int layerMask = ~LayerMask.GetMask(_layerWallsName);
@@ -17,12 +19,12 @@ public class Cube : MonoBehaviour
         {
             if (hit.collider.gameObject == gameObject)
             {
-                SplitCube();
+                Split();
             }
         }
     }
 
-    private void SplitCube()
+    private void Split()
     {
         int minRandomCubes = 2;
         int maxRandomCubes = 7;
@@ -37,19 +39,20 @@ public class Cube : MonoBehaviour
 
             for (int i = 0; i < newCubesCount; i++)
             {
-                GameObject newCube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                GameObject newCube = Instantiate(_cubePrefab, transform.position, Quaternion.identity);
 
                 newCube.layer = LayerMask.NameToLayer(_layerCubeName);
                 newCube.transform.position = transform.position;
                 newCube.transform.localScale = transform.localScale / scaleReduce;
 
-                newCube.AddComponent<Rigidbody>();
-                newCube.AddComponent<Cube>()._splitChance = _splitChance / splitReduce;
-
                 Color randomColor = new Color(Random.value, Random.value, Random.value);
                 newCube.GetComponent<Renderer>().material.color = randomColor;
 
                 newCube.GetComponent<Rigidbody>().AddExplosionForce(explosionForce, transform.position, explosionRadius);
+
+                Cube cubeScript = newCube.GetComponent<Cube>();
+                cubeScript._cubePrefab = _cubePrefab;
+                cubeScript._splitChance = _splitChance / splitReduce;
             }
         }
 
