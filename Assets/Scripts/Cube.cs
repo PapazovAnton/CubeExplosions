@@ -1,58 +1,33 @@
 using UnityEngine;
 
+[RequireComponent(typeof(Spawner))]
+
 public class Cube : MonoBehaviour
 {
-    [SerializeField] private GameObject _cubePrefab;
-    [SerializeField] private float _splitChance;
+    private Spawner _spawner;
+    private float _splitChance = 1.0f;
 
-    private string _layerCubeName = "Cube";
-    private string _layerWallsName = "Walls";
-    
-    private void OnMouseDown()
+    public float SplitChance
     {
-        int layerMask = ~LayerMask.GetMask(_layerWallsName);
-
-        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-        RaycastHit hit;
-
-        if (Physics.Raycast(ray, out hit, Mathf.Infinity, layerMask))
-        {
-            if (hit.collider.gameObject == gameObject)
-            {
-                Split();
-            }
-        }
+        get { return _splitChance; }
+        set { _splitChance = value; }
     }
 
-    private void Split()
+    private void Start()
     {
-        int minRandomCubes = 2;
-        int maxRandomCubes = 7;
+        _spawner = GetComponentInParent<Spawner>();
+    }
+
+    private void OnMouseDown()
+    {
         int scaleReduce = 2;
         int splitReduce = 2;
-        int explosionForce = 500;
-        int explosionRadius = 5;
 
-        if (Random.value <= _splitChance)
+        if (_spawner != null)
         {
-            int newCubesCount = Random.Range(minRandomCubes, maxRandomCubes);
-
-            for (int i = 0; i < newCubesCount; i++)
+            if (Random.value <= _splitChance)
             {
-                GameObject newCube = Instantiate(_cubePrefab, transform.position, Quaternion.identity);
-
-                newCube.layer = LayerMask.NameToLayer(_layerCubeName);
-                newCube.transform.position = transform.position;
-                newCube.transform.localScale = transform.localScale / scaleReduce;
-
-                Color randomColor = new Color(Random.value, Random.value, Random.value);
-                newCube.GetComponent<Renderer>().material.color = randomColor;
-
-                newCube.GetComponent<Rigidbody>().AddExplosionForce(explosionForce, transform.position, explosionRadius);
-
-                Cube cubeScript = newCube.GetComponent<Cube>();
-                cubeScript._cubePrefab = _cubePrefab;
-                cubeScript._splitChance = _splitChance / splitReduce;
+                _spawner.SpawnCubes(transform.position, transform.localScale / scaleReduce, _splitChance / splitReduce);
             }
         }
 
