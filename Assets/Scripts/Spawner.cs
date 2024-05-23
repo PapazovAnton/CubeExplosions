@@ -1,6 +1,6 @@
 using UnityEngine;
 
-[RequireComponent(typeof(Rigidbody), typeof(Explosion))]
+[RequireComponent(typeof(Explosion))]
 
 public class Spawner : MonoBehaviour
 {
@@ -10,29 +10,48 @@ public class Spawner : MonoBehaviour
 
     private Explosion _explosion;
 
-    private void Start()
+    private void OnEnable()
+    {
+        Cube.Click += SpawnCubes;
+    }
+
+    private void OnDisable()
+    {
+        Cube.Click -= SpawnCubes;
+    }
+
+    private void Awake()
     {
         _explosion = GetComponent<Explosion>();
     }
 
-    public void SpawnCubes(Vector3 position, Vector3 scale, float newSplitChance)
+    private void SpawnCubes(Cube cube)
     {
-        int explosionForce = 500;
-        int explosionRadius = 5;
+        Debug.Log(cube.SplitChance);
 
-        int count = Random.Range(_minCubes, _maxCubes);
-
-        for (int i = 0; i < count; i++)
+        if (Random.value <= cube.SplitChance)
         {
-            Cube newCube = Instantiate(cubePrefab, position, Quaternion.identity);
-            newCube.transform.localScale = scale;
-            newCube.SplitChance = newSplitChance;
-            newCube.GetComponent<Renderer>().material.color = new Color(Random.value, Random.value, Random.value);
+            int explosionForce = 50000;
+            int explosionRadius = 360;
+            int scaleReduce = 2;
+            int splitReduce = 2;
 
-            if(newCube.TryGetComponent<Rigidbody>(out Rigidbody rb) && _explosion != null)
+            Vector3 position = cube.transform.position;
+            Vector3 scale = cube.transform.localScale / scaleReduce;
+            float newSplitChance = cube.SplitChance / splitReduce;
+
+            int count = Random.Range(_minCubes, _maxCubes);
+
+            for (int i = 0; i < count; i++)
             {
-                _explosion.ApplyExplosionForce(rb, position, explosionRadius, explosionForce);
+                new Cube(cubePrefab, position, scale, newSplitChance);
+
+                if (cube.TryGetComponent(out Rigidbody rb) && _explosion != null)
+                {
+                    _explosion.ApplyExplosionForce(rb, position, explosionRadius, explosionForce);
+                }
             }
+
         }
     }
 }
