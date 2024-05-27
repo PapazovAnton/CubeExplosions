@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UIElements;
 
 [RequireComponent(typeof(Explosion))]
 
@@ -25,14 +26,36 @@ public class Spawner : MonoBehaviour
         _explosion = GetComponent<Explosion>();
     }
 
+    private void Start()
+    {
+        SpawnInitialCube();
+    }
+
+    private void SpawnInitialCube()
+    {
+        Vector3 scale = new Vector3(3, 3, 3);
+        Vector3[] cubePositions = new Vector3[]
+        {
+            new Vector3(0f, 3f, -53f),
+            new Vector3(-6f, 3f, -53f),
+            new Vector3(6f, 3f, -53f)
+        };
+
+        float splitChance = 1f;
+
+        foreach (Vector3 position in cubePositions)
+        {
+            Cube newCube = Instantiate(cubePrefab, position, Quaternion.identity);
+            newCube.Init(position, scale, splitChance);
+        }
+    }
+
     private void SpawnCubes(Cube cube)
     {
-        Debug.Log(cube.SplitChance);
-
         if (Random.value <= cube.SplitChance)
         {
-            int explosionForce = 50000;
-            int explosionRadius = 360;
+            int explosionForce = 500;
+            int explosionRadius = 45;
             int scaleReduce = 2;
             int splitReduce = 2;
 
@@ -44,9 +67,10 @@ public class Spawner : MonoBehaviour
 
             for (int i = 0; i < count; i++)
             {
-                new Cube(cubePrefab, position, scale, newSplitChance);
+                Cube newCube = Instantiate(cubePrefab, position, Quaternion.identity);
+                newCube.Init(position, scale, newSplitChance);
 
-                if (cube.TryGetComponent(out Rigidbody rb) && _explosion != null)
+                if (newCube.TryGetComponent(out Rigidbody rb) && _explosion != null)
                 {
                     _explosion.ApplyExplosionForce(rb, position, explosionRadius, explosionForce);
                 }

@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 [RequireComponent(typeof(Rigidbody))]
 
@@ -15,11 +16,11 @@ public class Cube : MonoBehaviour
         Destroy(gameObject);
     }
 
-    public Cube(Cube cubePrefab, Vector3 position, Vector3 scale, float splitChance)
+    public void Init(Vector3 position, Vector3 scale, float splitChance)
     {
-        Cube newCube = Instantiate(cubePrefab, position, Quaternion.identity);
-        newCube.transform.localScale = scale;
-        newCube.GetComponent<Renderer>().material.color = UnityEngine.Random.ColorHSV();
-        newCube.SplitChance = splitChance;
+        transform.position = position;
+        transform.localScale = scale;
+        GetComponent<Renderer>().material.color = UnityEngine.Random.ColorHSV();
+        SplitChance = splitChance;
     }
 }
